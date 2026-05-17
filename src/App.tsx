@@ -113,8 +113,8 @@ function App() {
         </div>
       </div>
 
-      {/* ===== ③ ナビゲーション ===== */}
-      <div className="sticky top-[128px] z-10 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      {/* ===== ③ ナビゲーション (PC用) ===== */}
+      <div className="hidden md:block sticky top-[128px] z-10 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <nav className="flex overflow-x-auto scrollbar-hide">
             {NAV_ITEMS.map(item => (
@@ -136,7 +136,7 @@ function App() {
       </div>
 
       {/* ===== ④ メインコンテンツ ===== */}
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-24 md:pb-6">
         {activeTab === 'list' && (
           <div className="glass-panel p-6">
             <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
@@ -196,6 +196,28 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* ===== ⑤ モバイル用ボトムナビゲーション ===== */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-safe">
+        <nav className="flex items-center justify-around px-2 pb-2 pt-2">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center justify-center w-full py-1 rounded-xl transition-all ${
+                activeTab === item.id
+                  ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+              }`}
+            >
+              <div className={`${activeTab === item.id ? 'scale-110 mb-1' : 'mb-1'} transition-transform duration-200`}>
+                {item.icon}
+              </div>
+              <span className="text-[10px] font-bold">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }

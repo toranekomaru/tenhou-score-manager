@@ -57,81 +57,84 @@ export default function GameFormCompact() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-wrap">
-      {/* 日時 */}
-      <input
-        type="datetime-local"
-        value={date}
-        onChange={handleDateChange}
-        className="glass-input text-sm h-10 px-3 py-0 w-44"
-      />
-
+    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row md:items-center gap-3 md:gap-2 w-full">
       {/* 順位ボタン */}
-      <div className="flex gap-1">
+      <div className="grid grid-cols-4 gap-1.5 md:flex md:gap-1 w-full md:w-auto">
         {([1, 2, 3, 4] as Rank[]).map(r => (
           <button
             key={r}
             type="button"
             onClick={() => setRank(r)}
-            className={`w-11 h-10 rounded-lg text-base font-bold border transition-all duration-150 ${
+            className={`h-12 md:w-11 md:h-10 rounded-lg text-lg md:text-base font-bold border transition-all duration-150 shadow-sm ${
               rank === r
-                ? r === 1 ? 'bg-[#4caf50]/20 border-[#4caf50] text-[#4caf50]'
-                : r === 2 ? 'bg-[#fbc02d]/20 border-[#fbc02d] text-[#fbc02d]'
-                : r === 3 ? 'bg-[#ab47bc]/20 border-[#ab47bc] text-[#ab47bc]'
-                           : 'bg-[#ef5350]/20 border-[#ef5350] text-[#ef5350]'
+                ? r === 1 ? 'bg-[#4caf50]/20 border-[#4caf50] text-[#4caf50] shadow-[#4caf50]/20'
+                : r === 2 ? 'bg-[#fbc02d]/20 border-[#fbc02d] text-[#fbc02d] shadow-[#fbc02d]/20'
+                : r === 3 ? 'bg-[#ab47bc]/20 border-[#ab47bc] text-[#ab47bc] shadow-[#ab47bc]/20'
+                           : 'bg-[#ef5350]/20 border-[#ef5350] text-[#ef5350] shadow-[#ef5350]/20'
                 : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:border-slate-400 dark:hover:border-slate-400'
             }`}
           >{r}</button>
         ))}
       </div>
 
-      {/* ルール */}
-      <select
-        value={rule}
-        onChange={e => setRule(e.target.value as Rule | '')}
-        className="glass-input text-sm h-10 px-3 py-0 w-28"
-      >
-        <option value="" disabled>ルール</option>
-        <option value="東風">東風</option>
-        <option value="東南">東南</option>
-      </select>
+      <div className="grid grid-cols-2 gap-2 w-full md:w-auto md:flex md:gap-2">
+        {/* ルール */}
+        <select
+          value={rule}
+          onChange={e => setRule(e.target.value as Rule | '')}
+          className="glass-input text-sm h-11 md:h-10 px-3 py-0 w-full md:w-28 font-medium"
+        >
+          <option value="" disabled>ルール</option>
+          <option value="東風">東風</option>
+          <option value="東南">東南</option>
+        </select>
 
-      {/* 卓 */}
-      <select
-        value={room}
-        onChange={e => setRoom(e.target.value as Room | '')}
-        className="glass-input text-sm h-10 px-3 py-0 w-28"
-      >
-        <option value="" disabled>卓</option>
-        <option value="特上卓">特上卓</option>
-        <option value="鳳凰卓">鳳凰卓</option>
-      </select>
+        {/* 卓 */}
+        <select
+          value={room}
+          onChange={e => setRoom(e.target.value as Room | '')}
+          className="glass-input text-sm h-11 md:h-10 px-3 py-0 w-full md:w-28 font-medium"
+        >
+          <option value="" disabled>卓</option>
+          <option value="特上卓">特上卓</option>
+          <option value="鳳凰卓">鳳凰卓</option>
+        </select>
+      </div>
 
-      {/* 対局後R */}
-      <input
-        type="number"
-        step="0.1"
-        value={rating}
-        placeholder="対局後R"
-        onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
-        className="glass-input text-sm h-10 px-3 py-0 w-32"
-      />
+      <div className="flex gap-2 w-full md:w-auto">
+        {/* 対局後R */}
+        <input
+          type="number"
+          step="0.1"
+          value={rating}
+          placeholder="対局後R"
+          onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
+          className="glass-input text-sm h-11 md:h-10 px-3 py-0 w-1/3 md:w-28 font-bold"
+        />
+        {/* 日時 */}
+        <input
+          type="datetime-local"
+          value={date}
+          onChange={handleDateChange}
+          className="glass-input text-sm h-11 md:h-10 px-2 md:px-3 py-0 w-2/3 md:w-44 text-slate-600 dark:text-slate-300"
+        />
+      </div>
 
       {/* 登録ボタン */}
       <button
         type="submit"
         disabled={!isFormValid}
-        className={`h-10 px-5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+        className={`h-12 md:h-10 px-5 w-full md:w-auto rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap mt-1 md:mt-0 ${
           success
-            ? 'bg-emerald-500 text-white shadow-sm'
+            ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
             : isFormValid
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 cursor-not-allowed'
+              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+              : 'bg-slate-100 dark:bg-slate-700/60 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-700'
         }`}
       >
         {success
-          ? <><CheckCircle2 size={15} /> 登録完了</>
-          : <><Send size={15} /> 登録</>
+          ? <><CheckCircle2 size={16} /> 登録完了</>
+          : <><Send size={16} /> 登録</>
         }
       </button>
     </form>
