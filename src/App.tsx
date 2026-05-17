@@ -56,55 +56,64 @@ function App() {
 
       {/* ===== ① タイトル + ステータス行 ===== */}
       <div className="sticky top-0 z-30 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-2 md:h-16 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-4">
           {/* タイトル */}
-          <div className="flex items-baseline gap-3 shrink-0">
-            <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400 tracking-tight">
+          <div className="flex items-baseline gap-2 shrink-0">
+            <h1 className="text-lg md:text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400 tracking-tight">
               Tenhou Manager
             </h1>
             <span className="hidden sm:block text-xs text-slate-400 font-medium">天鳳成績管理</span>
           </div>
 
-          {/* ステータスバー */}
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold uppercase tracking-widest mb-0.5">Current Dan</div>
-              <div className="font-extrabold text-indigo-700 dark:text-indigo-200 text-xl leading-none">
+          {/* テーマ切り替えボタン (スマホでは1行目の右端) */}
+          <button
+            onClick={() => setIsDark(!isDark)}
+            className="md:hidden shrink-0 flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+            aria-label="テーマ切り替え"
+          >
+            {isDark ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
+          {/* ステータスバー (スマホでは2行目にフルサイズで表示) */}
+          <div className="flex items-center justify-around md:justify-end gap-2 md:gap-6 w-full md:w-auto pt-1 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800/50">
+            <div className="text-center w-1/3 md:w-auto">
+              <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold uppercase tracking-widest mb-0.5">Dan</div>
+              <div className="font-extrabold text-indigo-700 dark:text-indigo-200 text-lg md:text-xl leading-none">
                 {lastRecord ? lastRecord.danAfter : settings.currentDan}
               </div>
             </div>
-            <div className="w-px h-8 bg-slate-300 dark:bg-slate-700" />
-            <div className="text-center">
+            <div className="w-px h-6 md:h-8 bg-slate-300 dark:bg-slate-700" />
+            <div className="text-center w-1/3 md:w-auto">
               <div className="text-[10px] text-cyan-500 dark:text-cyan-400 font-bold uppercase tracking-widest mb-0.5">Points</div>
-              <div className="font-extrabold text-cyan-700 dark:text-cyan-200 text-xl leading-none">
+              <div className="font-extrabold text-cyan-700 dark:text-cyan-200 text-lg md:text-xl leading-none">
                 {lastRecord ? lastRecord.pointAfter : settings.currentPoint}
-                <span className="text-xs font-normal text-cyan-500 ml-1">pt</span>
+                <span className="text-[10px] md:text-xs font-normal text-cyan-500 ml-0.5 md:ml-1">pt</span>
               </div>
             </div>
-            <div className="w-px h-8 bg-slate-300 dark:bg-slate-700" />
-            <div className="text-center">
+            <div className="w-px h-6 md:h-8 bg-slate-300 dark:bg-slate-700" />
+            <div className="text-center w-1/3 md:w-auto">
               <div className="text-[10px] text-purple-500 dark:text-purple-400 font-bold uppercase tracking-widest mb-0.5">Rating</div>
-              <div className="font-extrabold text-purple-700 dark:text-purple-200 text-xl leading-none">
-                <span className="text-xs font-normal text-purple-500 mr-0.5">R</span>
+              <div className="font-extrabold text-purple-700 dark:text-purple-200 text-lg md:text-xl leading-none">
+                <span className="text-[10px] md:text-xs font-normal text-purple-500 mr-0.5">R</span>
                 {lastRecord ? lastRecord.ratingAfter : settings.currentRating}
               </div>
             </div>
           </div>
 
-          {/* テーマ切り替えボタン */}
+          {/* テーマ切り替えボタン (PCではステータスバーの右側) */}
           <button
             onClick={() => setIsDark(!isDark)}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
+            className="hidden md:flex shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-semibold"
             aria-label="テーマ切り替え"
           >
             {isDark ? <Sun size={15} /> : <Moon size={15} />}
-            <span className="hidden sm:inline">{isDark ? 'ライト' : 'ダーク'}</span>
+            <span>{isDark ? 'ライト' : 'ダーク'}</span>
           </button>
         </div>
       </div>
 
       {/* ===== ② 入力フォームバー（常時固定） ===== */}
-      <div className="sticky top-16 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm">
+      <div className="sticky top-[96px] md:top-16 z-20 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-6 pt-3 pb-2 space-y-2">
           <GameFormCompact />
           {records.length >= 3 && (
