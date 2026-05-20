@@ -108,8 +108,17 @@ function generateInsights(records: GameRecord[]): InsightCard[] {
       const avg = recent.reduce((s, r) => s + r.rank, 0) / n;
       const lastRate = (lasts / n) * 100;
 
-      cards.push({ type: 'neutral', icon: '📋', tag: '基本成績', value: avg.toFixed(2), desc: `直近${n}戦 平均順位` });
-      cards.push({ type: 'neutral', icon: '📋', tag: '基本成績', value: `${lastRate.toFixed(1)}%`, desc: `直近${n}戦 ラス率` });
+      const avgDesc = `直近${n}戦 平均順位`;
+      const hasAvgInsight = cards.some(c => c.type !== 'neutral' && c.desc === avgDesc);
+      if (!hasAvgInsight) {
+        cards.push({ type: 'neutral', icon: '📋', tag: '基本成績', value: avg.toFixed(2), desc: avgDesc });
+      }
+
+      const lastDesc = `直近${n}戦 ラス率`;
+      const hasLastInsight = cards.some(c => c.type !== 'neutral' && c.desc === lastDesc);
+      if (!hasLastInsight) {
+        cards.push({ type: 'neutral', icon: '📋', tag: '基本成績', value: `${lastRate.toFixed(1)}%`, desc: lastDesc });
+      }
     }
   }
 
