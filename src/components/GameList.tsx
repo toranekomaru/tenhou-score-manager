@@ -67,7 +67,7 @@ export default function GameList({ records }: Props) {
                 <span className="text-slate-300">{r.pointAfter} pt</span>
               </td>
               <td className="px-4 py-3 text-right font-mono text-purple-300">
-                {r.ratingAfter?.toFixed(1) || '-'}
+                {r.ratingAfter?.toFixed(0) || '-'}
               </td>
               <td className="px-4 py-3 text-center">
                 <button onClick={() => handleDelete(r.id)} className="text-slate-500 hover:text-rose-400 transition-colors p-1 rounded hover:bg-rose-500/10" title="削除">
