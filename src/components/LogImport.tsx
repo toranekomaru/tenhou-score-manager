@@ -13,6 +13,7 @@ interface ParsedGame {
   startDan: Dan;
   ratingBefore: number;
   ratingAfter: number;
+  ratingUnknown: boolean; // Rが記載されていないログの場合true
   isDuplicate: boolean;
 }
 
@@ -36,7 +37,8 @@ const KANJI_DAN_MAP: Record<string, Dan> = {
 // ログのパース用正規表現
 // 例: "4位 13分 2026-05-27 18:13 四特東喰赤速 五段510pt-70pt R1908 OneHand(+48.7)..."
 // または変動なし "3位 21分 2026-05-26 23:22 四特南喰赤－ 五段510pt R1910 火口付近(+58.4)..."
-const LOG_REGEX = /^(\d)位\s+(?:\d+分\s+)?(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s+([三四]?)([般上特鳳])([東南])[^\s]*\s+([一二三四五六七八九十\d]+段)(\d+)pt(?:([+-]?\d+)pt)?\s+R(\d+)/;
+// またはR省略 "4位 11分 2026-05-25 22:50 四特東喰赤速 五段685pt-70pt Rion(+45.4)..."
+const LOG_REGEX = /^(\d)位\s+(?:\d+分\s+)?(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s+([三四]?)([般上特鳳])([東南])[^\s]*\s+([一二三四五六七八九十\d]+段)(\d+)pt(?:([+-]?\d+)pt)?\s+(?:R(\d+)\s+)?/;
 
 export default function LogImport() {
   const [logText, setLogText] = useState('');
@@ -107,7 +109,9 @@ export default function LogImport() {
       const roomChar = match[4]; // 般/上/特/鳳
       const ruleChar = match[5]; // 東/南
       const danRaw = match[6]; // 五段
-      const ratingBefore = Number(match[9]); // R1908
+      const ratingBeforeRaw = match[9]; // R1908（ない場合はundefined）
+      const ratingBefore = ratingBeforeRaw !== undefined ? Number(ratingBeforeRaw) : 0;
+      const ratingUnknown = ratingBeforeRaw === undefined;
 
       // 各項目のマッピングと検証
       let room: Room | null = null;
@@ -126,9 +130,9 @@ export default function LogImport() {
       // 重複チェック
       const isDuplicate = existingDates.has(dateRaw);
 
-      // 仮レート計算
+      // 仮レート計算（R不明の場合は変動値のみ記録、ratingAfterは0のまま）
       const deltaR = deltas[rank] ?? 0;
-      const ratingAfter = ratingBefore + deltaR;
+      const ratingAfter = ratingUnknown ? 0 : ratingBefore + deltaR;
 
       // 日時を "yyyy-MM-ddTHH:mm" 形式に変換して保存用とする
       const dateFormatted = dateRaw.replace(' ', 'T');
@@ -142,6 +146,7 @@ export default function LogImport() {
         startDan,
         ratingBefore,
         ratingAfter,
+        ratingUnknown,
         isDuplicate
       });
     });
@@ -311,11 +316,17 @@ export default function LogImport() {
                         {game.rank}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-slate-400">
-                      R{game.ratingBefore}
+                    <td className="px-3 py-2 text-right font-mono">
+                      {game.ratingUnknown
+                        ? <span className="text-slate-500 text-[10px] font-semibold italic">R不明</span>
+                        : <span className="text-slate-400">R{game.ratingBefore}</span>
+                      }
                     </td>
-                    <td className="px-3 py-2 text-right font-mono font-bold text-purple-300">
-                      R{game.ratingAfter}
+                    <td className="px-3 py-2 text-right font-mono font-bold">
+                      {game.ratingUnknown
+                        ? <span className="text-slate-500 text-[10px] font-semibold italic">R不明</span>
+                        : <span className="text-purple-300">R{game.ratingAfter}</span>
+                      }
                     </td>
                   </tr>
                 ))}
