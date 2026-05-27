@@ -35,7 +35,8 @@ const KANJI_DAN_MAP: Record<string, Dan> = {
 
 // ログのパース用正規表現
 // 例: "4位 13分 2026-05-27 18:13 四特東喰赤速 五段510pt-70pt R1908 OneHand(+48.7)..."
-const LOG_REGEX = /^(\d)位\s+(?:\d+分\s+)?(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s+([三四]?)([般上特鳳])([東南])[^\s]*\s+([一二三四五六七八九十\d]+段)(\d+)pt([+-]?\d+)pt\s+R(\d+)/;
+// または変動なし "3位 21分 2026-05-26 23:22 四特南喰赤－ 五段510pt R1910 火口付近(+58.4)..."
+const LOG_REGEX = /^(\d)位\s+(?:\d+分\s+)?(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s+([三四]?)([般上特鳳])([東南])[^\s]*\s+([一二三四五六七八九十\d]+段)(\d+)pt(?:([+-]?\d+)pt)?\s+R(\d+)/;
 
 export default function LogImport() {
   const [logText, setLogText] = useState('');
