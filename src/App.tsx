@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Settings, BarChart3, List, User, Sun, Moon, CalendarDays, Hash } from 'lucide-react';
+import { Settings, BarChart3, List, User, Sun, Moon, CalendarDays, Hash, Clipboard } from 'lucide-react';
 import { db, initializeSettings } from './db/db';
 import { calculateHistory } from './utils/calculator';
 import GameFormCompact from './components/GameFormCompact';
 import GameList from './components/GameList';
 import PerformanceComment from './components/PerformanceComment';
+import LogImport from './components/LogImport';
 
 import RatingGraph from './components/RatingGraph';
 import StatsByCondition from './components/StatsByCondition';
@@ -25,6 +26,7 @@ const NAV_ITEMS: { id: Tab; icon: React.ReactNode; label: string }[] = [
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('list');
+  const [showImport, setShowImport] = useState(false);
   const [dbReady, setDbReady] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -148,9 +150,29 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-24 md:pb-6">
         {activeTab === 'list' && (
           <div className="glass-panel p-6">
-            <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
-              <List size={18} /> 成績一覧
-            </h2>
+            <div className="flex items-center justify-between border-b border-indigo-200 dark:border-indigo-500/20 pb-3 mb-5">
+              <h2 className="text-base font-bold flex items-center gap-2 text-indigo-600 dark:text-indigo-300">
+                <List size={18} /> 成績一覧
+              </h2>
+              <button
+                onClick={() => setShowImport(!showImport)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-200 shadow-sm ${
+                  showImport
+                    ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Clipboard size={14} />
+                <span>{showImport ? '閉じる' : 'ログをインポート'}</span>
+              </button>
+            </div>
+
+            {showImport && (
+              <div className="mb-6 p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.02] dark:bg-indigo-500/[0.01]">
+                <LogImport />
+              </div>
+            )}
+
             <GameList records={records} />
           </div>
         )}

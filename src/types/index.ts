@@ -29,4 +29,10 @@ export type Settings = {
   currentDan: Dan;
   currentPoint: number;
   currentRating: number;
+  ratingDeltas?: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+  };
 };

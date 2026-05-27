@@ -18,7 +18,22 @@ export async function initializeSettings() {
       id: 1,
       currentDan: "4段",
       currentPoint: 800,
-      currentRating: 1800
+      currentRating: 1800,
+      ratingDeltas: {
+        1: 6,
+        2: 2,
+        3: -2,
+        4: -6
+      }
+    });
+  } else if (!existing.ratingDeltas) {
+    await db.settings.update(1, {
+      ratingDeltas: {
+        1: 6,
+        2: 2,
+        3: -2,
+        4: -6
+      }
     });
   }
 }
