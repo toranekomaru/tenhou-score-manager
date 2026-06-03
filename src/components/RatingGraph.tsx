@@ -23,6 +23,7 @@ interface ChartDataItem {
   rating: number | undefined;
   dan: string | undefined;
   danChangeType: DanChangeType;
+  maxPoint: number | undefined;
 }
 
 // ───── カスタム Dot（昇段・降段マーカー） ────────────────────────────────────
@@ -100,26 +101,28 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <p style={{ color: '#cbd5e1', fontSize: 11, fontWeight: 700, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #1e293b' }}>
         Game {label}
       </p>
-      {payload.map((entry: any, i: number) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
-            <span style={{ color: '#94a3b8', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              {entry.name === 'point' ? 'Pt' : 'R'}
-            </span>
+      {payload
+        .filter((entry: any) => entry.name !== 'maxPoint')
+        .map((entry: any, i: number) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
+              <span style={{ color: '#94a3b8', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {entry.name === 'point' ? 'Pt' : 'R'}
+              </span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ color: '#f1f5f9', fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>{entry.value}</span>
+              {entry.name === 'point' && gameData?.dan && (
+                <div style={{ color: '#818cf8', fontSize: 10, marginTop: 2 }}>
+                  {gameData.dan} {gameData.maxPoint != null && `(Max: ${gameData.maxPoint}pt)`}
+                  {gameData.danChangeType === 'promotion' && ' ✦ 昇段'}
+                  {gameData.danChangeType === 'demotion' && ' ▼ 降段'}
+                </div>
+              )}
+            </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ color: '#f1f5f9', fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>{entry.value}</span>
-            {entry.name === 'point' && gameData?.dan && (
-              <div style={{ color: '#818cf8', fontSize: 10, marginTop: 2 }}>
-                {gameData.dan}
-                {gameData.danChangeType === 'promotion' && ' ✦ 昇段'}
-                {gameData.danChangeType === 'demotion' && ' ▼ 降段'}
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
+        ))}
     </div>
   );
 };
@@ -147,18 +150,33 @@ export default function RatingGraph({ records }: Props) {
         danChangeType = nextIdx > prevIdx ? 'promotion' : 'demotion';
       }
     }
+    const dan = r.danAfter ?? '4段';
+    const maxPt = danConfig[dan]?.promotion ?? 1600;
+
     return {
       name: `Game ${r.gameIndex}`,
       index: r.gameIndex,
       point: r.pointAfter,
       rating: r.ratingAfter,
-      dan: r.danAfter,
+      dan,
       danChangeType,
+      maxPoint: maxPt,
     };
   });
 
-  const currentDan = records[records.length - 1].danAfter ?? '4段';
-  const maxPoint = danConfig[currentDan]?.promotion ?? 1600;
+  // 登場するすべての段位の初期ポイントと最大ポイントを抽出してY軸の目盛りを動的生成
+  const uniqueDans = Array.from(new Set(data.map((d) => d.dan).filter(Boolean))) as string[];
+  const yTicks = Array.from(
+    new Set([
+      0,
+      ...uniqueDans.flatMap((dan) => {
+        const config = danConfig[dan];
+        return config ? [config.initial, config.promotion] : [];
+      }),
+    ])
+  ).sort((a, b) => a - b);
+
+  const maxY = yTicks.length > 0 ? Math.max(...yTicks) : 1600;
 
   return (
     <div className="h-[480px] w-full mt-6">
@@ -203,7 +221,8 @@ export default function RatingGraph({ records }: Props) {
             axisLine={false}
             width={55}
             tickMargin={8}
-            domain={[-50, maxPoint + 50]}
+            domain={[-50, maxY + 50]}
+            ticks={yTicks}
           />
 
           <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#475569', strokeWidth: 1, strokeDasharray: '4 4' }} />
@@ -221,8 +240,20 @@ export default function RatingGraph({ records }: Props) {
 
           {/* 降段ライン (0pt) */}
           <ReferenceLine y={0} yAxisId="left" stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
-          {/* 昇段ライン (maxPoint) */}
-          <ReferenceLine y={maxPoint} yAxisId="left" stroke="#22c55e" strokeDasharray="4 4" strokeOpacity={0.5} />
+          {/* その時の段位の最大ポイント（昇段ライン） */}
+          <Line
+            yAxisId="left"
+            type="stepAfter"
+            dataKey="maxPoint"
+            name="maxPoint"
+            stroke="#10b981"
+            strokeDasharray="4 4"
+            strokeWidth={1.5}
+            strokeOpacity={0.7}
+            dot={false}
+            activeDot={false}
+            legendType="none"
+          />
 
           {/* 昇段・降段時の縦線 */}
           {data.filter(d => d.danChangeType && d.index != null).map((d) => (
