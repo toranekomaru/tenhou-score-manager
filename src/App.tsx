@@ -9,6 +9,7 @@ import PerformanceComment from './components/PerformanceComment';
 import LogImport from './components/LogImport';
 
 import RatingGraph from './components/RatingGraph';
+import ErrorBoundary from './components/ErrorBoundary';
 import StatsByCondition from './components/StatsByCondition';
 import StatsByMonth from './components/StatsByMonth';
 import StatsByCount from './components/StatsByCount';
@@ -189,7 +190,9 @@ function App() {
               <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
                 <BarChart3 size={18} /> レーティング・ポイント推移
               </h2>
-              <RatingGraph records={records} />
+              <ErrorBoundary>
+                <RatingGraph records={records} />
+              </ErrorBoundary>
             </div>
           </div>
         )}
