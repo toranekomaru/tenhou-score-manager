@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Settings, BarChart3, List, User, Sun, Moon, CalendarDays, Hash, Clipboard } from 'lucide-react';
+import { Settings, BarChart3, List, User, Sun, Moon, CalendarDays, Hash, Clipboard, Trophy } from 'lucide-react';
 import { db, initializeSettings } from './db/db';
 import { calculateHistory } from './utils/calculator';
 import GameFormCompact from './components/GameFormCompact';
@@ -14,14 +14,16 @@ import StatsByCondition from './components/StatsByCondition';
 import StatsByMonth from './components/StatsByMonth';
 import StatsByCount from './components/StatsByCount';
 import SettingsPanel from './components/Settings';
+import RecordsRoom from './components/RecordsRoom';
 
-type Tab = 'list' | 'stats' | 'monthly' | 'count' | 'settings';
+type Tab = 'list' | 'stats' | 'monthly' | 'count' | 'records' | 'settings';
 
 const NAV_ITEMS: { id: Tab; icon: React.ReactNode; label: string }[] = [
   { id: 'list',     icon: <List size={16} />,          label: '対局履歴' },
   { id: 'stats',    icon: <BarChart3 size={16} />,     label: '基本集計' },
   { id: 'monthly',  icon: <CalendarDays size={16} />,  label: '期間別集計' },
   { id: 'count',    icon: <Hash size={16} />,          label: '対戦数集計' },
+  { id: 'records',  icon: <Trophy size={16} />,        label: '記録室' },
   { id: 'settings', icon: <Settings size={16} />,      label: '初期設定' },
 ];
 
@@ -212,6 +214,15 @@ function App() {
               <Hash size={18} /> 対戦数別集計
             </h2>
             <StatsByCount records={records} />
+          </div>
+        )}
+
+        {activeTab === 'records' && (
+          <div className="glass-panel p-6">
+            <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
+              <Trophy size={18} /> 記録室
+            </h2>
+            <RecordsRoom records={records} />
           </div>
         )}
 
