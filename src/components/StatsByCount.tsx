@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { GameRecord } from '../types';
+import StatsByCountGraph from './StatsByCountGraph';
 
 interface Props {
   records: GameRecord[];
@@ -125,6 +126,9 @@ export default function StatsByCount({ records }: Props) {
           </select>
         </div>
       </div>
+
+      {/* グラフ表示 */}
+      <StatsByCountGraph chunks={chunks} direction={direction} />
 
       {/* 集計テーブル */}
       <div className="overflow-x-auto rounded-xl border border-slate-700/50">
