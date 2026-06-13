@@ -135,6 +135,8 @@ export default function GameForm() {
         <input
           type="number"
           step="0.1"
+          min={0}
+          max={3000}
           value={rating}
           placeholder="例: 1823.5"
           onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}

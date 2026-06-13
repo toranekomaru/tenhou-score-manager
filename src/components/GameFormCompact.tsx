@@ -106,6 +106,8 @@ export default function GameFormCompact() {
         <input
           type="number"
           step="0.1"
+          min={0}
+          max={3000}
           value={rating}
           placeholder="対局後R"
           onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
