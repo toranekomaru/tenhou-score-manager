@@ -1,17 +1,34 @@
+import { useState } from 'react';
 import { GameRecord } from '../types';
 import { db } from '../db/db';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil, Check, X } from 'lucide-react';
 
 interface Props {
   records: GameRecord[];
 }
 
 export default function GameList({ records }: Props) {
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingRating, setEditingRating] = useState<string>('');
+
   const handleDelete = async (id?: number) => {
     if (!id) return;
     if (window.confirm('この対局履歴を削除してよろしいですか？\n※以降の段位履歴は自動的に再計算されます。')) {
       await db.gameRecords.delete(id);
     }
+  };
+
+  const handleSaveRating = async (id: number, valueStr: string) => {
+    const value = parseInt(valueStr, 10);
+    if (isNaN(value)) {
+      setEditingId(null);
+      return;
+    }
+    const record = records.find(r => r.id === id);
+    if (record && record.rating !== value) {
+      await db.gameRecords.update(id, { rating: value });
+    }
+    setEditingId(null);
   };
 
   const reversedRecords = [...records].reverse();
@@ -67,7 +84,51 @@ export default function GameList({ records }: Props) {
                 <span className="text-slate-300">{r.pointAfter} pt</span>
               </td>
               <td className="px-4 py-3 text-right font-mono text-purple-300">
-                {r.ratingAfter?.toFixed(0) || '-'}
+                {r.id !== undefined && editingId === r.id ? (
+                  <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="number"
+                      value={editingRating}
+                      onChange={(e) => setEditingRating(e.target.value)}
+                      className="w-20 px-1.5 py-0.5 text-right bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 font-mono text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveRating(r.id!, editingRating);
+                        if (e.key === 'Escape') setEditingId(null);
+                      }}
+                    />
+                    <button
+                      onClick={() => handleSaveRating(r.id!, editingRating)}
+                      className="text-emerald-400 hover:text-emerald-300 p-0.5 rounded hover:bg-emerald-500/10 cursor-pointer"
+                      title="保存"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-slate-400 hover:text-slate-300 p-0.5 rounded hover:bg-slate-500/10 cursor-pointer"
+                      title="キャンセル"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-1.5 group/rate">
+                    <span>{r.ratingAfter?.toFixed(0) || '-'}</span>
+                    <button
+                      onClick={() => {
+                        if (r.id !== undefined) {
+                          setEditingId(r.id);
+                          setEditingRating(r.rating?.toString() || '');
+                        }
+                      }}
+                      className="text-slate-500 md:opacity-0 md:group-hover/rate:opacity-100 focus:opacity-100 hover:text-purple-300 transition-opacity p-0.5 rounded hover:bg-purple-500/10 cursor-pointer"
+                      title="レートを編集"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                  </div>
+                )}
               </td>
               <td className="px-4 py-3 text-center">
                 <button onClick={() => handleDelete(r.id)} className="text-slate-500 hover:text-rose-400 transition-colors p-1 rounded hover:bg-rose-500/10" title="削除">
