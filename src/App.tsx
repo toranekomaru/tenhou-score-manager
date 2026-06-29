@@ -33,6 +33,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('list');
   const [showImport, setShowImport] = useState(false);
   const [dbReady, setDbReady] = useState(false);
+  const [statsLimit, setStatsLimit] = useState<number | 'all'>('all');
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : false;
@@ -182,24 +183,66 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'stats' && (
-          <div className="space-y-6">
-            <div className="glass-panel p-6">
-              <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
-                <BarChart3 size={18} /> 基本集計
-              </h2>
-              <StatsByCondition records={records} />
+        {activeTab === 'stats' && (() => {
+          const filteredStatsRecords = statsLimit === 'all' ? records : records.slice(-statsLimit);
+          return (
+            <div className="space-y-6">
+              {/* 集計対象件数のフィルター */}
+              <div className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-3.5 bg-indigo-500 rounded-full" />
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">集計対象範囲</span>
+                </div>
+                <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl">
+                  {[
+                    { label: '全戦', value: 'all' },
+                    { label: '直近100戦', value: 100 },
+                    { label: '直近300戦', value: 300 },
+                    { label: '直近500戦', value: 500 },
+                    { label: '直近1000戦', value: 1000 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.label}
+                      onClick={() => setStatsLimit(opt.value as number | 'all')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                        statsLimit === opt.value
+                          ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm font-bold'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-panel p-6">
+                <h2 className="text-base font-bold mb-5 flex items-center justify-between text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
+                  <span className="flex items-center gap-2">
+                    <BarChart3 size={18} /> 基本集計
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    {statsLimit === 'all' ? '全戦' : `直近${statsLimit}戦`}
+                  </span>
+                </h2>
+                <StatsByCondition records={filteredStatsRecords} />
+              </div>
+              <div className="glass-panel p-6">
+                <h2 className="text-base font-bold mb-5 flex items-center justify-between text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
+                  <span className="flex items-center gap-2">
+                    <BarChart3 size={18} /> レーティング・ポイント推移
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    {statsLimit === 'all' ? '全戦' : `直近${statsLimit}戦`}
+                  </span>
+                </h2>
+                <ErrorBoundary>
+                  <RatingGraph records={filteredStatsRecords} />
+                </ErrorBoundary>
+              </div>
             </div>
-            <div className="glass-panel p-6">
-              <h2 className="text-base font-bold mb-5 flex items-center gap-2 text-indigo-600 dark:text-indigo-300 border-b border-indigo-200 dark:border-indigo-500/20 pb-3">
-                <BarChart3 size={18} /> レーティング・ポイント推移
-              </h2>
-              <ErrorBoundary>
-                <RatingGraph records={records} />
-              </ErrorBoundary>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {activeTab === 'monthly' && (
           <div className="glass-panel p-6">
