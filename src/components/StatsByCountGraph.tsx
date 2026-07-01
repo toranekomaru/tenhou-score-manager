@@ -9,9 +9,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  Cell,
 } from 'recharts';
-import { Eye, EyeOff, BarChart3, TrendingUp, Percent, Award, Landmark } from 'lucide-react';
+import { Eye, EyeOff, BarChart3, TrendingUp, Percent, Award } from 'lucide-react';
 
 interface ChunkData {
   startIndex: number;
@@ -35,8 +34,43 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
     rankDan: true,
     rates: true,
     ptRate: true,
-    avgPt: true,
   });
+
+  const [activeSeries, setActiveSeries] = useState<Record<string, boolean>>({
+    avgRank: true,
+    stableDan: true,
+    topRate: true,
+    rentaiRate: true,
+    lastRate: true,
+    totalPt: true,
+    totalRDelta: true,
+  });
+
+  const handleLegendClick = (e: any) => {
+    const dataKey = e.dataKey || e.payload?.dataKey;
+    if (!dataKey) return;
+    setActiveSeries(prev => ({
+      ...prev,
+      [dataKey]: !prev[dataKey]
+    }));
+  };
+
+  const renderLegendText = (value: string, entry: any) => {
+    const dataKey = entry.dataKey || entry.payload?.dataKey;
+    const active = dataKey ? activeSeries[dataKey] : true;
+    return (
+      <span 
+        className={`cursor-pointer transition-all duration-200 select-none hover:text-indigo-500 hover:underline ${
+          active 
+            ? 'text-slate-700 dark:text-slate-300 font-semibold' 
+            : 'text-slate-400 dark:text-slate-600 line-through decoration-1'
+        }`}
+        title="クリックして表示/非表示を切り替え"
+      >
+        {value}
+      </span>
+    );
+  };
 
   // グラフ用データ（最新対局が常に右側に来るようにソート）
   const chartData = useMemo(() => {
@@ -52,7 +86,6 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
       })
       .map(d => {
         const avgRank = d.totalRank / d.count;
-        const avgPt = d.totalPt / d.count;
         const stableDan = d.ranks[3] > 0
           ? ((5 * d.ranks[0] + 2 * d.ranks[1] - 2 * d.ranks[3]) / d.ranks[3])
           : null;
@@ -73,7 +106,6 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
           lastRate: Number(lastRate.toFixed(1)),
           totalPt: d.totalPt,
           totalRDelta: Number(d.totalRDelta.toFixed(1)),
-          avgPt: Number(avgPt.toFixed(1)),
         };
       });
   }, [chunks, direction]);
@@ -98,7 +130,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
             <BarChart3 size={16} /> グラフ表示切替
           </span>
           <span className="text-[10px] bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 px-2 py-0.5 rounded font-medium">
-            グラフをクリックして非表示/表示
+            凡例をクリックして各要素の表示/非表示を切り替え
           </span>
         </div>
         <div className="flex flex-wrap gap-2.5">
@@ -141,18 +173,6 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
             獲得Pt & 変動Rate
           </button>
 
-          <button
-            onClick={() => toggleChart('avgPt')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-              visibleCharts.avgPt
-                ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300'
-                : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-400'
-            }`}
-          >
-            {visibleCharts.avgPt ? <Eye size={14} /> : <EyeOff size={14} />}
-            <Landmark size={13} className="text-fuchsia-500" />
-            平均Pt
-          </button>
         </div>
       </div>
 
@@ -161,8 +181,13 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
           {/* 1. 平均順位 & 安定段位 グラフ */}
           {visibleCharts.rankDan && (
             <div className="glass-panel p-5 relative overflow-hidden">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <TrendingUp size={16} className="text-indigo-500" /> 平均順位 & 安定段位
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center justify-between flex-wrap gap-2">
+                <span className="flex items-center gap-2">
+                  <TrendingUp size={16} className="text-indigo-500" /> 平均順位 & 安定段位
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                  💡 凡例クリックで要素切替
+                </span>
               </h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -179,9 +204,8 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                     {/* 左Y軸：平均順位（1.00が最上部、反転） */}
                     <YAxis
                       yAxisId="left"
-                      domain={[1.0, 4.0]}
+                      domain={['auto', 'auto']}
                       reversed
-                      ticks={[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]}
                       stroke="#6366f1"
                       tick={{ fill: '#818cf8', fontSize: 10, fontWeight: 600 }}
                       tickLine={false}
@@ -215,6 +239,8 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       iconType="circle"
                       iconSize={8}
                       wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
+                      onClick={handleLegendClick}
+                      formatter={renderLegendText}
                     />
                     <Line
                       yAxisId="left"
@@ -225,6 +251,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       strokeWidth={3}
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
+                      hide={!activeSeries.avgRank}
                     />
                     <Line
                       yAxisId="right"
@@ -236,6 +263,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
                       connectNulls
+                      hide={!activeSeries.stableDan}
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -246,8 +274,13 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
           {/* 2. 各種率 グラフ */}
           {visibleCharts.rates && (
             <div className="glass-panel p-5 relative overflow-hidden">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <Percent size={16} className="text-emerald-500" /> 各種率 (トップ・連対・ラス)
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center justify-between flex-wrap gap-2">
+                <span className="flex items-center gap-2">
+                  <Percent size={16} className="text-emerald-500" /> 各種率 (トップ・連対・ラス)
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                  💡 凡例クリックで要素切替
+                </span>
               </h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -262,8 +295,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       tickMargin={8}
                     />
                     <YAxis
-                      domain={[0, 100]}
-                      ticks={[0, 25, 50, 75, 100]}
+                      domain={['auto', 'auto']}
                       stroke="#475569"
                       tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
                       tickLine={false}
@@ -288,6 +320,8 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       iconType="circle"
                       iconSize={8}
                       wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
+                      onClick={handleLegendClick}
+                      formatter={renderLegendText}
                     />
                     <Line
                       type="linear"
@@ -297,6 +331,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       strokeWidth={2.5}
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
+                      hide={!activeSeries.topRate}
                     />
                     <Line
                       type="linear"
@@ -306,6 +341,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       strokeWidth={2.5}
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
+                      hide={!activeSeries.rentaiRate}
                     />
                     <Line
                       type="linear"
@@ -315,6 +351,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       strokeWidth={2.5}
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
+                      hide={!activeSeries.lastRate}
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -325,8 +362,13 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
           {/* 3. 獲得ポイント & 変動レート グラフ */}
           {visibleCharts.ptRate && (
             <div className="glass-panel p-5 relative overflow-hidden">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <Award size={16} className="text-cyan-500" /> 獲得ポイント & 変動レート
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center justify-between flex-wrap gap-2">
+                <span className="flex items-center gap-2">
+                  <Award size={16} className="text-cyan-500" /> 獲得ポイント & 変動レート
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                  💡 凡例クリックで要素切替
+                </span>
               </h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -377,6 +419,8 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       iconType="circle"
                       iconSize={8}
                       wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
+                      onClick={handleLegendClick}
+                      formatter={renderLegendText}
                     />
                     {/* 獲得Ptは視認性向上のためBarChartで表示 */}
                     <Bar
@@ -388,6 +432,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       stroke="#0ea5e9"
                       strokeWidth={1.5}
                       radius={[4, 4, 0, 0]}
+                      hide={!activeSeries.totalPt}
                     />
                     <Line
                       yAxisId="right"
@@ -398,6 +443,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       strokeWidth={3}
                       dot={{ r: 3, strokeWidth: 1 }}
                       activeDot={{ r: 5 }}
+                      hide={!activeSeries.totalRDelta}
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -405,66 +451,6 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
             </div>
           )}
 
-          {/* 4. 平均ポイント グラフ */}
-          {visibleCharts.avgPt && (
-            <div className="glass-panel p-5 relative overflow-hidden">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                <Landmark size={16} className="text-fuchsia-500" /> 平均ポイント
-              </h3>
-              <div className="h-[280px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 10, right: 15, left: 10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-800/80" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      stroke="#94a3b8"
-                      tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      stroke="#f43f5e"
-                      tick={{ fill: '#e11d48', fontSize: 10, fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={45}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'rgba(15,23,42,0.95)',
-                        border: '1px solid rgba(71,85,105,0.5)',
-                        borderRadius: '8px',
-                        padding: '10px',
-                      }}
-                      labelStyle={{ color: '#cbd5e1', fontSize: 11, fontWeight: 700, marginBottom: 4 }}
-                      itemStyle={{ fontSize: 11, padding: '2px 0' }}
-                    />
-                    <Legend
-                      verticalAlign="top"
-                      height={30}
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
-                    />
-                    {/* プラス/マイナスで色を変えるためのBar描画処理 */}
-                    <Bar
-                      dataKey="avgPt"
-                      name="平均Pt"
-                      fill="#f43f5e"
-                      radius={[4, 4, 0, 0]}
-                    >
-                      {chartData.map((entry, index) => {
-                        const color = entry.avgPt >= 0 ? '#10b981' : '#f43f5e';
-                        return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.65} stroke={color} strokeWidth={1} />;
-                      })}
-                    </Bar>
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

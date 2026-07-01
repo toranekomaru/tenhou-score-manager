@@ -9,7 +9,7 @@ interface Props {
 export default function StatsByCount({ records }: Props) {
   const [chunkSize, setChunkSize] = useState<number>(50);
   const [ruleFilter, setRuleFilter] = useState<'すべて' | '東風' | '東南'>('すべて');
-  const [direction, setDirection] = useState<'fromOldest' | 'fromNewest'>('fromOldest');
+  const [direction, setDirection] = useState<'fromOldest' | 'fromNewest'>('fromNewest');
 
   const chunks = useMemo(() => {
     if (records.length === 0) return [];
