@@ -277,6 +277,8 @@ interface Props {
 }
 
 export default function RatingGraph({ records }: Props) {
+  const [showPoint, setShowPoint] = useState(true);
+  const [showRating, setShowRating] = useState(true);
   const [showMarkers, setShowMarkers] = useState(true);
 
   if (records.length === 0) {
@@ -345,16 +347,40 @@ export default function RatingGraph({ records }: Props) {
   return (
     <div className="w-full mt-4 space-y-4">
       {/* トグルコントロール */}
-      <div className="flex items-center justify-end">
-        <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-400 hover:text-slate-300 transition-colors">
+      <div className="flex items-center justify-end gap-5 flex-wrap">
+        <label className={`inline-flex items-center gap-2 cursor-pointer text-xs font-semibold transition-colors ${showPoint ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-500 hover:text-slate-400'}`}>
           <input
             type="checkbox"
-            checked={showMarkers}
-            onChange={(e) => setShowMarkers(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900"
+            checked={showPoint}
+            disabled={showPoint && !showRating}
+            onChange={(e) => setShowPoint(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <span>高値・安値マーカーを表示</span>
+          <span>Pointを表示</span>
         </label>
+
+        <label className={`inline-flex items-center gap-2 cursor-pointer text-xs font-semibold transition-colors ${showRating ? 'text-purple-400 hover:text-purple-300' : 'text-slate-500 hover:text-slate-400'}`}>
+          <input
+            type="checkbox"
+            checked={showRating}
+            disabled={showRating && !showPoint}
+            onChange={(e) => setShowRating(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+          <span>Ratingを表示</span>
+        </label>
+
+        {showRating && (
+          <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-400 hover:text-slate-300 transition-colors">
+            <input
+              type="checkbox"
+              checked={showMarkers}
+              onChange={(e) => setShowMarkers(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900"
+            />
+            <span>R高値・安値マーカーを表示</span>
+          </label>
+        )}
       </div>
 
       <div className="h-[480px] w-full">
@@ -389,6 +415,7 @@ export default function RatingGraph({ records }: Props) {
               axisLine={false}
               width={50}
               tickMargin={8}
+              hide={!showRating}
             />
 
             <YAxis
@@ -401,6 +428,7 @@ export default function RatingGraph({ records }: Props) {
               tickMargin={8}
               domain={[-50, maxY + 50]}
               ticks={yTicks}
+              hide={!showPoint}
             />
 
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#475569', strokeWidth: 1, strokeDasharray: '4 4' }} />
@@ -417,24 +445,28 @@ export default function RatingGraph({ records }: Props) {
             />
 
             {/* 降段ライン (0pt) */}
-            <ReferenceLine y={0} yAxisId="left" stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
+            {showPoint && (
+              <ReferenceLine y={0} yAxisId="left" stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
+            )}
             {/* その時の段位の最大ポイント（昇段ライン） */}
-            <Line
-              yAxisId="left"
-              type="stepAfter"
-              dataKey="maxPoint"
-              name="maxPoint"
-              stroke="#10b981"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-              strokeOpacity={0.7}
-              dot={false}
-              activeDot={false}
-              legendType="none"
-            />
+            {showPoint && (
+              <Line
+                yAxisId="left"
+                type="stepAfter"
+                dataKey="maxPoint"
+                name="maxPoint"
+                stroke="#10b981"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                dot={false}
+                activeDot={false}
+                legendType="none"
+              />
+            )}
 
             {/* 昇段・降段時の縦線 */}
-            {data.filter(d => d.danChangeType && d.index != null).map((d) => (
+            {showPoint && data.filter(d => d.danChangeType && d.index != null).map((d) => (
               <ReferenceLine
                 key={`vline-${d.index}`}
                 x={d.index}
@@ -453,42 +485,46 @@ export default function RatingGraph({ records }: Props) {
             ))}
 
             {/* ポイント推移（カスタムdotで昇段・降段を表示） */}
-            <Area
-              yAxisId="left"
-              type="monotone"
-              dataKey="point"
-              name="point"
-              stroke="#22d3ee"
-              fillOpacity={1}
-              fill="url(#colorPoint)"
-              strokeWidth={3}
-              dot={<CustomAreaDot />}
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#a5f3fc' }}
-              isAnimationActive={true}
-              animationDuration={1200}
-              animationEasing="ease-out"
-            />
+            {showPoint && (
+              <Area
+                yAxisId="left"
+                type="linear"
+                dataKey="point"
+                name="point"
+                stroke="#22d3ee"
+                fillOpacity={1}
+                fill="url(#colorPoint)"
+                strokeWidth={3}
+                dot={<CustomAreaDot />}
+                activeDot={{ r: 6, strokeWidth: 0, fill: '#a5f3fc' }}
+                isAnimationActive={true}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            )}
 
             {/* レーティング推移 */}
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="rating"
-              name="rating"
-              stroke="#a855f7"
-              strokeWidth={3}
-              dot={
-                <CustomRatingDot
-                  showMarkers={showMarkers}
-                  maxRatingVal={maxRatingVal}
-                  minRatingVal={minRatingVal}
-                />
-              }
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#d8b4fe' }}
-              isAnimationActive={true}
-              animationDuration={1200}
-              animationEasing="ease-out"
-            />
+            {showRating && (
+              <Line
+                yAxisId="right"
+                type="linear"
+                dataKey="rating"
+                name="rating"
+                stroke="#a855f7"
+                strokeWidth={3}
+                dot={
+                  <CustomRatingDot
+                    showMarkers={showMarkers}
+                    maxRatingVal={maxRatingVal}
+                    minRatingVal={minRatingVal}
+                  />
+                }
+                activeDot={{ r: 6, strokeWidth: 0, fill: '#d8b4fe' }}
+                isAnimationActive={true}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>

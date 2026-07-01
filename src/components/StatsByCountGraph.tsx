@@ -218,7 +218,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                     />
                     <Line
                       yAxisId="left"
-                      type="monotone"
+                      type="linear"
                       dataKey="avgRank"
                       name="平均順位"
                       stroke="#6366f1"
@@ -228,7 +228,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                     />
                     <Line
                       yAxisId="right"
-                      type="monotone"
+                      type="linear"
                       dataKey="stableDan"
                       name="安定段位"
                       stroke="#14b8a6"
@@ -290,7 +290,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
                     />
                     <Line
-                      type="monotone"
+                      type="linear"
                       dataKey="topRate"
                       name="トップ率"
                       stroke="#10b981"
@@ -299,7 +299,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       activeDot={{ r: 5 }}
                     />
                     <Line
-                      type="monotone"
+                      type="linear"
                       dataKey="rentaiRate"
                       name="連対率"
                       stroke="#06b6d4"
@@ -308,7 +308,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                       activeDot={{ r: 5 }}
                     />
                     <Line
-                      type="monotone"
+                      type="linear"
                       dataKey="lastRate"
                       name="ラス率"
                       stroke="#f43f5e"
@@ -391,7 +391,7 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
                     />
                     <Line
                       yAxisId="right"
-                      type="monotone"
+                      type="linear"
                       dataKey="totalRDelta"
                       name="R変動"
                       stroke="#c084fc"
