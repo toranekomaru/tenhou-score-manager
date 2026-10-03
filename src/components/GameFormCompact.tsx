@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../db/db';
-import { Rank, Rule, Room } from '../types';
+import { Rank, Rule, Room, AiEvaluation, AI_EVALUATION_OPTIONS } from '../types';
 import { Send, CheckCircle2 } from 'lucide-react';
 
 export default function GameFormCompact() {
@@ -15,6 +15,8 @@ export default function GameFormCompact() {
   const [rule, setRule]     = useState<Rule | ''>('');
   const [room, setRoom]     = useState<Room | ''>('');
   const [rating, setRating] = useState<number | ''>('');
+  const [aiEvaluation, setAiEvaluation] = useState<AiEvaluation | ''>('');
+  const [aiScore, setAiScore] = useState<number | ''>('');
   const [success, setSuccess] = useState(false);
 
   // ユーザーが手動で日付を変更しない限り、日時を現在の時刻に追従させる
@@ -45,6 +47,8 @@ export default function GameFormCompact() {
       startDan: '4段',
       rating: rating as number,
       finalScore: 0,
+      ...(aiEvaluation ? { aiEvaluation: aiEvaluation as AiEvaluation } : {}),
+      ...(aiScore !== '' ? { aiScore: aiScore as number } : {}),
     });
     setSuccess(true);
     setTimeout(() => setSuccess(false), 2000);
@@ -54,6 +58,8 @@ export default function GameFormCompact() {
     setRule('');
     setRoom('');
     setRating('');
+    setAiEvaluation('');
+    setAiScore('');
   };
 
   return (
@@ -119,6 +125,32 @@ export default function GameFormCompact() {
           value={date}
           onChange={handleDateChange}
           className="glass-input text-sm h-11 md:h-10 px-2 md:px-3 py-0 w-2/3 md:w-44 text-slate-600 dark:text-slate-300"
+        />
+      </div>
+
+      <div className="flex gap-2 w-full md:w-auto">
+        {/* AI評価 */}
+        <select
+          value={aiEvaluation}
+          onChange={e => setAiEvaluation(e.target.value as AiEvaluation | '')}
+          className="glass-input text-sm h-11 md:h-10 px-3 py-0 w-1/2 md:w-28 font-bold"
+        >
+          <option value="">AI評価</option>
+          {AI_EVALUATION_OPTIONS.map(grade => (
+            <option key={grade} value={grade}>{grade}</option>
+          ))}
+        </select>
+        
+        {/* AIスコア */}
+        <input
+          type="number"
+          step="0.1"
+          min={0}
+          max={100}
+          value={aiScore}
+          placeholder="AIスコア"
+          onChange={e => setAiScore(e.target.value === '' ? '' : Number(e.target.value))}
+          className="glass-input text-sm h-11 md:h-10 px-3 py-0 w-1/2 md:w-28 font-bold"
         />
       </div>
 

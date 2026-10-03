@@ -32,6 +32,8 @@ export default function StatsByMonth({ records }: Props) {
       ranks: [number, number, number, number];
       totalPt: number;
       totalRDelta: number;
+      sdNum: number;
+      sdDen: number;
     }> = {};
 
     const filteredRecords = records.filter(
@@ -48,7 +50,7 @@ export default function StatsByMonth({ records }: Props) {
       }
       
       if (!data[dateKey]) {
-        data[dateKey] = { count: 0, eastCount: 0, southCount: 0, totalRank: 0, ranks: [0, 0, 0, 0], totalPt: 0, totalRDelta: 0 };
+        data[dateKey] = { count: 0, eastCount: 0, southCount: 0, totalRank: 0, ranks: [0, 0, 0, 0], totalPt: 0, totalRDelta: 0, sdNum: 0, sdDen: 0 };
       }
       const d = data[dateKey];
       d.count += 1;
@@ -60,6 +62,10 @@ export default function StatsByMonth({ records }: Props) {
       if (r.rule === '東南') d.southCount += 1;
       d.totalPt += (r.delta || 0);
       d.totalRDelta += (r.ratingDelta || 0);
+      
+      if (r.rank === 1) d.sdNum += r.room === '鳳凰卓' ? 6 : 5;
+      else if (r.rank === 2) d.sdNum += r.room === '鳳凰卓' ? 3 : 2;
+      else if (r.rank === 4) { d.sdNum -= 2; d.sdDen += 1; }
     });
 
     return data;
@@ -145,8 +151,8 @@ export default function StatsByMonth({ records }: Props) {
                 <td className="px-2 py-3 text-emerald-400 font-mono text-xs">{((d.ranks[0]+d.ranks[1])/d.count*100).toFixed(1)}%</td>
                 <td className="px-2 py-3 text-[#ff8a80] font-mono text-xs">{(d.ranks[3]/d.count*100).toFixed(1)}%</td>
                 <td className="px-4 py-3 text-indigo-300 font-bold bg-indigo-500/5">
-                  {d.ranks[3] > 0 
-                    ? (((5 * d.ranks[0]) + (2 * d.ranks[1]) - (2 * d.ranks[3])) / d.ranks[3]).toFixed(2)
+                  {d.sdDen > 0 
+                    ? (d.sdNum / d.sdDen).toFixed(2)
                     : '-'}
                 </td>
                 <td className={`px-4 py-3 text-right font-bold ${d.totalPt >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>

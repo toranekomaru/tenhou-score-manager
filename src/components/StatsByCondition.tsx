@@ -20,15 +20,21 @@ function computeStats(filtered: GameRecord[]) {
   const lastRate = (ranks[3] / count) * 100;
   const totalPt = filtered.reduce((s, r) => s + (r.delta || 0), 0);
   const avgPt = totalPt / count;
-  const stableDan = ranks[3] > 0
-    ? (((5 * ranks[0]) + (2 * ranks[1]) - (2 * ranks[3])) / ranks[3]).toFixed(2)
-    : '-';
+  let sdNum = 0;
+  let sdDen = 0;
+  filtered.forEach(r => {
+    if (r.rank === 1) sdNum += r.room === '鳳凰卓' ? 6 : 5;
+    else if (r.rank === 2) sdNum += r.room === '鳳凰卓' ? 3 : 2;
+    else if (r.rank === 4) { sdNum -= 2; sdDen += 1; }
+  });
+  const stableDan = sdDen > 0 ? (sdNum / sdDen).toFixed(2) : '-';
   const totalRDelta = filtered.reduce((s, r) => s + (r.ratingDelta || 0), 0);
   return { count, avgRank, ranks, topRate, renTaiRate, lastRate, totalPt, avgPt, stableDan, totalRDelta };
 }
 
 export default function StatsByCondition({ records }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('全体');
+  const [statsLimit, setStatsLimit] = useState<number | 'all'>('all');
 
   if (records.length === 0) {
     return <div className="text-center text-slate-400 py-10">データがありません</div>;
@@ -42,9 +48,10 @@ export default function StatsByCondition({ records }: Props) {
 
   const availableTabs = tabs.filter(t => records.filter(t.filter).length > 0);
   const activeFilter = tabs.find(t => t.key === activeTab)?.filter ?? (() => true);
-  const filtered = records.filter(activeFilter);
+  const filteredByRule = records.filter(activeFilter);
+  const filtered = statsLimit === 'all' ? filteredByRule : filteredByRule.slice(-statsLimit);
 
-  if (filtered.length === 0) {
+  if (filteredByRule.length === 0) {
     return (
       <div className="text-center text-slate-400 py-8">
         このルールのデータがありません
@@ -63,21 +70,45 @@ export default function StatsByCondition({ records }: Props) {
   return (
     <div className="space-y-4">
 
-      {/* ─── タブ ─── */}
-      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit">
-        {availableTabs.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key)}
-            className={`px-5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === t.key
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
-          >
-            {t.key}
-          </button>
-        ))}
+      {/* ─── タブ & 集計範囲 ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit">
+          {availableTabs.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`px-5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === t.key
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              {t.key}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl">
+          {[
+            { label: '全戦', value: 'all' },
+            { label: '直近100戦', value: 100 },
+            { label: '直近300戦', value: 300 },
+            { label: '直近500戦', value: 500 },
+            { label: '直近1000戦', value: 1000 },
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              onClick={() => setStatsLimit(opt.value as number | 'all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                statsLimit === opt.value
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ─── メイン: 指標 + 円グラフ ─── */}

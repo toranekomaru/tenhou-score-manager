@@ -22,6 +22,8 @@ interface ChunkData {
   ranks: [number, number, number, number];
   totalPt: number;
   totalRDelta: number;
+  sdNum: number;
+  sdDen: number;
 }
 
 interface Props {
@@ -86,8 +88,8 @@ export default function StatsByCountGraph({ chunks, direction }: Props) {
       })
       .map(d => {
         const avgRank = d.totalRank / d.count;
-        const stableDan = d.ranks[3] > 0
-          ? ((5 * d.ranks[0] + 2 * d.ranks[1] - 2 * d.ranks[3]) / d.ranks[3])
+        const stableDan = d.sdDen > 0
+          ? (d.sdNum / d.sdDen)
           : null;
         const topRate = (d.ranks[0] / d.count) * 100;
         const rentaiRate = ((d.ranks[0] + d.ranks[1]) / d.count) * 100;

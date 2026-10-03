@@ -39,6 +39,8 @@ export default function StatsByCount({ records }: Props) {
       let totalRDelta = 0;
       let eastCount = 0;
       let southCount = 0;
+      let sdNum = 0;
+      let sdDen = 0;
       const ranks = [0, 0, 0, 0] as [number, number, number, number];
 
       chunkRecords.forEach(r => {
@@ -48,6 +50,9 @@ export default function StatsByCount({ records }: Props) {
         if (r.rank >= 1 && r.rank <= 4) ranks[r.rank - 1] += 1;
         if (r.rule === '東風') eastCount += 1;
         if (r.rule === '東南') southCount += 1;
+        if (r.rank === 1) sdNum += r.room === '鳳凰卓' ? 6 : 5;
+        else if (r.rank === 2) sdNum += r.room === '鳳凰卓' ? 3 : 2;
+        else if (r.rank === 4) { sdNum -= 2; sdDen += 1; }
       });
 
       // fromNewest のときは「直近何戦目か」の相対番号を使う
@@ -64,6 +69,8 @@ export default function StatsByCount({ records }: Props) {
         ranks,
         totalPt,
         totalRDelta,
+        sdNum,
+        sdDen,
       });
     }
 
@@ -182,8 +189,8 @@ export default function StatsByCount({ records }: Props) {
                   <td className="px-2 py-3 text-emerald-400 font-mono text-xs">{((d.ranks[0]+d.ranks[1])/d.count*100).toFixed(1)}%</td>
                   <td className="px-2 py-3 text-[#ff8a80] font-mono text-xs">{(d.ranks[3]/d.count*100).toFixed(1)}%</td>
                   <td className="px-4 py-3 text-indigo-300 font-bold bg-indigo-500/5">
-                    {d.ranks[3] > 0 
-                      ? (((5 * d.ranks[0]) + (2 * d.ranks[1]) - (2 * d.ranks[3])) / d.ranks[3]).toFixed(2)
+                    {d.sdDen > 0 
+                      ? (d.sdNum / d.sdDen).toFixed(2)
                       : '-'}
                   </td>
                   <td className={`px-4 py-3 text-right font-bold ${d.totalPt >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>

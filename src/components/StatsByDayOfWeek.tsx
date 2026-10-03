@@ -18,10 +18,12 @@ interface DayStats {
   ranks: [number, number, number, number];
   totalPt: number;
   totalRDelta: number;
+  sdNum: number;
+  sdDen: number;
 }
 
 function emptyStats(): DayStats {
-  return { count: 0, eastCount: 0, southCount: 0, totalRank: 0, ranks: [0, 0, 0, 0], totalPt: 0, totalRDelta: 0 };
+  return { count: 0, eastCount: 0, southCount: 0, totalRank: 0, ranks: [0, 0, 0, 0], totalPt: 0, totalRDelta: 0, sdNum: 0, sdDen: 0 };
 }
 
 function StatsRow({
@@ -45,8 +47,8 @@ function StatsRow({
   const avgRank = d.totalRank / d.count;
   const avgPt = d.totalPt / d.count;
   const stability =
-    d.ranks[3] > 0
-      ? (5 * d.ranks[0] + 2 * d.ranks[1] - 2 * d.ranks[3]) / d.ranks[3]
+    d.sdDen > 0
+      ? d.sdNum / d.sdDen
       : null;
 
   return (
@@ -116,6 +118,9 @@ export default function StatsByDayOfWeek({ records }: Props) {
         if (r.rank >= 1 && r.rank <= 4) d.ranks[r.rank - 1] += 1;
         d.totalPt += (r.delta || 0);
         d.totalRDelta += (r.ratingDelta || 0);
+        if (r.rank === 1) d.sdNum += r.room === '鳳凰卓' ? 6 : 5;
+        else if (r.rank === 2) d.sdNum += r.room === '鳳凰卓' ? 3 : 2;
+        else if (r.rank === 4) { d.sdNum -= 2; d.sdDen += 1; }
       }
       if (isEast) {
         target.eastCount += 1;

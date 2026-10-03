@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../db/db';
-import { Rank, Rule, Room } from '../types';
+import { Rank, Rule, Room, AiEvaluation, AI_EVALUATION_OPTIONS } from '../types';
 import { Send, CheckCircle2 } from 'lucide-react';
 
 export default function GameForm() {
@@ -15,6 +15,7 @@ export default function GameForm() {
   const [rule, setRule] = useState<Rule | ''>('');             // 未選択
   const [room, setRoom] = useState<Room | ''>('');             // 未選択
   const [rating, setRating] = useState<number | ''>('');      // 未入力
+  const [aiEvaluation, setAiEvaluation] = useState<AiEvaluation | null>(null);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,6 +38,7 @@ export default function GameForm() {
       startDan: '4段', // ダミー値（calculateHistoryによって上書きされるため）
       rating: rating as number,
       finalScore: 0,
+      ...(aiEvaluation ? { aiEvaluation } : {}),
     });
 
     setSuccess(true);
@@ -48,6 +50,7 @@ export default function GameForm() {
     setRule('');
     setRoom('');
     setRating('');
+    setAiEvaluation(null);
   };
 
   return (
@@ -142,6 +145,38 @@ export default function GameForm() {
           onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
           className="glass-input w-full font-medium"
         />
+      </div>
+
+      {/* AI評価 */}
+      <div className="space-y-2">
+        <label className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          AI Evaluation / AI評価 <span className="text-slate-500 ml-1 font-normal normal-case">(optional)</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {AI_EVALUATION_OPTIONS.map((grade) => (
+            <button
+              key={grade}
+              type="button"
+              onClick={() => setAiEvaluation(aiEvaluation === grade ? null : grade)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold border transition-all duration-200 ${
+                aiEvaluation === grade
+                  ? grade === 'S+' ? 'bg-amber-400/20 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                  : grade === 'S'  ? 'bg-yellow-400/20 border-yellow-400 text-yellow-300 shadow-[0_0_12px_rgba(234,179,8,0.3)]'
+                  : grade === 'S-' ? 'bg-lime-400/20 border-lime-400 text-lime-300 shadow-[0_0_12px_rgba(163,230,53,0.3)]'
+                  : grade === 'A'  ? 'bg-emerald-400/20 border-emerald-400 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                  : grade === 'B'  ? 'bg-sky-400/20 border-sky-400 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.3)]'
+                  : grade === 'C'  ? 'bg-violet-400/20 border-violet-400 text-violet-300 shadow-[0_0_12px_rgba(167,139,250,0.3)]'
+                  :                  'bg-rose-400/20 border-rose-400 text-rose-300 shadow-[0_0_12px_rgba(251,113,133,0.3)]'
+                  : 'bg-slate-800/50 border-slate-700 text-slate-500 hover:bg-slate-700 hover:text-slate-300'
+              }`}
+            >
+              {grade}
+            </button>
+          ))}
+        </div>
+        {aiEvaluation && (
+          <p className="text-xs text-slate-500">選択中: <span className="text-indigo-300 font-bold">{aiEvaluation}</span>　クリックで解除</p>
+        )}
       </div>
 
       {/* エラーメッセージ */}

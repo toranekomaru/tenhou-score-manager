@@ -4,6 +4,8 @@ export type Room = "特上卓" | "鳳凰卓";
 export type Dan = 
   | "4段" | "5段" | "6段" | "7段"
   | "8段" | "9段" | "10段";
+export type AiEvaluation = "S+" | "S" | "S-" | "A" | "B" | "C" | "D";
+export const AI_EVALUATION_OPTIONS: AiEvaluation[] = ["S+", "S", "S-", "A", "B", "C", "D"];
 
 export type GameRecord = {
   id?: number; 
@@ -14,6 +16,9 @@ export type GameRecord = {
   room: Room;
   startDan: Dan; // その対局のゲーム開始時の段位と認識するが処理で上書きされる
   rating: number; 
+  aiEvaluation?: AiEvaluation; // AIによる対局評価
+  aiScore?: number; // AIによる100点満点の評価
+  memo?: string; // メモ
 
   // 計算によって追加されるフィールド
   gameIndex?: number;

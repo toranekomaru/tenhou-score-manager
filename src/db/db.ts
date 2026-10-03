@@ -11,6 +11,21 @@ db.version(1).stores({
   settings: 'id'
 });
 
+db.version(2).stores({
+  gameRecords: '++id, date, startDan, room, rule, aiEvaluation',
+  settings: 'id'
+});
+
+db.version(3).stores({
+  gameRecords: '++id, date, startDan, room, rule, aiEvaluation',
+  settings: 'id'
+});
+
+db.version(4).stores({
+  gameRecords: '++id, date, startDan, room, rule, aiEvaluation, aiScore',
+  settings: 'id'
+});
+
 export async function initializeSettings() {
   const existing = await db.settings.get(1);
   if (!existing) {
